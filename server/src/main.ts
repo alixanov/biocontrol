@@ -6,16 +6,16 @@ async function bootstrap() {
   const logger = new Logger("BioControlGateway");
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for client Next.js app
+  // Enable CORS for client Next.js app and Render web environments
   app.enableCors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
     credentials: true,
   });
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
-  logger.log(`BioControl Gateway running on: http://localhost:${port}/api/v1/screening`);
+  await app.listen(port, "0.0.0.0");
+  logger.log(`BioControl Gateway running on port ${port}`);
 }
 
 bootstrap();

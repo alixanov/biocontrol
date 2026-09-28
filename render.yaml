@@ -1,0 +1,40 @@
+services:
+  # Next.js Frontend Web Service
+  - type: web
+    name: biocontrol-client
+    runtime: node
+    rootDir: client
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://biocontrol-server.onrender.com
+
+  # NestJS Backend API Service
+  - type: web
+    name: biocontrol-server
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # FastAPI AI Service
+  - type: web
+    name: biocontrol-ai-service
+    runtime: python
+    rootDir: ai-service
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
