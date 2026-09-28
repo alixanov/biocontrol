@@ -1,0 +1,97 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SessionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum FindingSeverity {
+  NORMAL
+  LOW
+  MODERATE
+  ELEVATED
+}
+
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  role         String             @default("PATIENT")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  sessions     ScreeningSession[]
+
+  @@map("users")
+}
+
+model ScreeningSession {
+  id                  String             @id @default(uuid())
+  userId              String?
+  status              SessionStatus      @default(PENDING)
+  imageS3Key          String
+  camMaskS3Key        String?
+  overallVitalScore   Int?
+  inferenceLatencyMs  Int?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user                User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  qualityGateLog      QualityGateLog?
+  findings            Finding[]
+  auditLogs           AuditLog[]
+
+  @@map("screening_sessions")
+}
+
+model QualityGateLog {
+  id              String            @id @default(uuid())
+  sessionId       String            @unique
+  passed          Boolean
+  failureReason   String?
+  metrics         Json
+  createdAt       DateTime          @default(now())
+
+  session         ScreeningSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("quality_gate_logs")
+}
+
+model Finding {
+  id            String            @id @default(uuid())
+  sessionId     String
+  conditionCode String
+  displayName   String
+  category      String
+  probability   Float
+  severity      FindingSeverity   @default(NORMAL)
+  zone          String
+  roiBox        Int[]
+  recommendation String?
+  createdAt     DateTime          @default(now())
+
+  session       ScreeningSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("findings")
+}
+
+model AuditLog {
+  id          String            @id @default(uuid())
+  sessionId   String?
+  action      String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime          @default(now())
+
+  session     ScreeningSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
