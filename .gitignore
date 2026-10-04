@@ -70,10 +70,3 @@ desktop.ini
 *.swo
 *.sublime-workspace
 *.sublime-project
-
-# Blender Caches & Temp Files
-*.blend1
-*.blend2
-*.blend@
-*.bphys
-/blender/cache/
